@@ -1,0 +1,144 @@
+           .data
+thongbao1:.asciiz "Nhap so luong phan tu cua mang: "
+thongbao2:.asciiz "Nhap gia tri lan luot cho cac phan tu: \n"
+lonnhat:  .asciiz "Gia tri lon nhat: "
+nhonhat:  .asciiz "\nGia tri nho nhat: "
+tong:	  .asciiz "\nTong tat ca cac phan tu: "
+thongbao3:.asciiz "\nNhap vao chi so cua phan tu ban muon xuat: "
+thongbao4:.asciiz "Gia tri cua phan tu: "
+
+array:	.space 100
+	.text
+	.globl main
+main:
+	# Nhap so luong phan tu
+	la $a0,thongbao1
+	addi $v0,$0,4
+	syscall
+	
+	addi $v0,$0,5
+	syscall
+	add $s1,$v0,$0	# Luu so luong phan tu vao $s1
+
+	# Nhap gia tri cho cac phan tu
+	la $a0,thongbao2
+	addi $v0,$0,4
+	syscall
+	
+	addi $t0,$0,0	# Dem so phan tu da nhap
+	la $s0,array	# Dia chi dau mang
+
+loop1:	beq $t0,$s1,exit1	# Neu da nhap het thi ket thuc
+	addi $v0,$0,5
+	syscall
+	addi $t1,$v0,0	# Luu gia tri vua nhap
+	sb $t1,0($s0)	# Luu gia tri vao mang
+	addi $s0,$s0,1	# Tang dia chi con tro mang
+	addi $t0,$t0,1	# Tang so phan tu da nhap
+	j loop1
+
+exit1:	
+
+# Tim phan tu lon nhat
+	la $s0,array	# Dia chi dau mang
+	lb $s2,($s0)	# Gia tri lon nhat tam thoi la phan tu dau tien
+	addi $s3,$s0,1	# Dia chi phan tu tiep theo
+	addi $t0,$0,1	# Dem so phan tu da xet
+
+loop2:	beq $s1,$t0,exit2	# Neu da xet het thi ket thuc
+	lb $s4,($s3)	# Lay gia tri phan tu hien tai
+	slt $s7,$s2,$s4	# Kiem tra neu $s2 < $s4
+	beq $s7,$0,j2	# Neu $s2 >= $s4 thi tiep tuc
+	# Neu $s2 < $s4 thi cap nhat gia tri lon nhat
+	add $s2,$0,$s4
+	addi $t0,$t0,1
+	addi $s3,$s3,1
+	j loop2
+
+j2:	# Neu $s2 >= $s4 thi tiep tuc
+	addi $t0,$t0,1
+	addi $s3,$s3,1
+	j loop2
+exit2:
+	la $a0,lonnhat
+	addi $v0,$0,4
+	syscall
+	
+	addi $a0,$s2,0
+	addi $v0,$0,1
+	syscall
+
+
+# Tim phan tu nho nhat
+	la $s0,array	# Dia chi dau mang
+	lb $s2,($s0)	# Gia tri nho nhat tam thoi la phan tu dau tien
+	addi $s3,$s0,1	# Dia chi phan tu tiep theo
+	addi $t0,$0,1	# Dem so phan tu da xet
+
+loop3:	beq $s1,$t0,exit3	# Neu da xet het thi ket thuc
+	lb $s4,($s3)	# Lay gia tri phan tu hien tai
+	slt $s7,$s2,$s4	# Kiem tra neu $s2 < $s4
+	beq $s7,$0,e3	# Neu $s2 >= $s4 thi cap nhat gia tri nho nhat
+	j j3
+
+e3:	# Neu $s2 < $s4 thi tiep tuc
+	add $s2,$0,$s4
+	addi $t0,$t0,1
+	addi $s3,$s3,1
+	j loop2
+
+j3:	# Neu $s2 >= $s4 thi tiep tuc
+	addi $t0,$t0,1
+	addi $s3,$s3,1
+	j loop3
+exit3:
+	la $a0,nhonhat
+	addi $v0,$0,4
+	syscall
+	
+	addi $a0,$s2,0
+	addi $v0,$0,1
+	syscall
+
+# Tinh tong cac phan tu
+	la $s0,array	# Dia chi dau mang
+	addi $t0,$0,0	# Dem so phan tu da tinh tong
+	addi $s2,$0,0	# Tong cac phan tu
+loop4:	beq $s1,$t0,exit4	# Neu da tinh tong het thi ket thuc
+	
+	lb $s3,($s0)	# Lay gia tri phan tu hien tai
+	add $s2,$s2,$s3	# Cong gia tri vao tong
+	
+	addi $s0,$s0,1	# Tang dia chi con tro mang
+	addi $t0,$t0,1	# Tang so phan tu da tinh tong
+	j loop4
+exit4:
+	la $a0,tong
+	addi $v0,$0,4
+	syscall
+	
+	addi $a0,$s2,0
+	addi $v0,$0,1
+	syscall
+
+# Nhap xuat phan tu theo chi so
+	la $s0,array	# Dia chi dau mang
+	
+	la $a0,thongbao3
+	addi $v0,$0,4
+	syscall
+	
+	addi $v0,$0,5
+	syscall
+	add $s7,$v0,$0	# Luu chi so can xuat
+
+	sll $s7,$s7,2	# Tinh offset trong mang
+	add $s0,$s0,$s7	# Tinh dia chi cua phan tu can xuat
+
+	la $a0,thongbao4
+	addi $v0,$0,4
+	syscall
+	
+	lb $a0,($s0)	# Lay gia tri cua phan tu
+	addi $v0,$0,1
+	syscall
